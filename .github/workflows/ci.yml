@@ -1,0 +1,29 @@
+name: Test
+
+on: [push]
+
+jobs:
+  format_check:
+    name: Format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.18
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        id: backend_cache
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.OS }}-${{ hashFiles('**/go.sum') }}
+
+      - name: Get dependencies
+        if: ${{ steps.backend_cache.outputs.cache-hit != 'true' }}
+        run: go mod download
+
+      - name: Run format check
+        run: go vet -v ./...
